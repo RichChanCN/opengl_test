@@ -1,11 +1,13 @@
+/*
 #include<iostream>
-#include<glad\glad.h>
-#include<GLFW\glfw3.h>
-#include"shader.h"
-#include"camera.h"
+#include<glad/glad.h>
+#include<GLFW/glfw3.h>
+#include<mygl/shader.h>
+#include<glm/glm.hpp>
+#include<glm/gtc/matrix_transform.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include"stb_image.h"
+#include<mygl\stb_image.h>
 
 //窗口调整回调函数
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -62,6 +64,14 @@ int main()
         return -1;
     }
 
+    // configure global opengl state
+    // -----------------------------
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
     glViewport(0, 0, 800, 600);
 
     //注册窗口回调函数
@@ -80,7 +90,7 @@ int main()
 
     //贴图加载
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("assets\\image\\container.jpg", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("assets\\images\\container.jpg", &width, &height, &nrChannels, 0);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -95,8 +105,7 @@ int main()
 
     //着色器部分
     Shader normal_shader("vs.glsl","fs.glsl");
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
+    Shader single_color_shader("single_color_vs.glsl", "single_color_fs.glsl");
 
     unsigned int VBO;
     glGenBuffers(1, &VBO);
@@ -116,9 +125,9 @@ int main()
     // 3. 设置顶点属性指针
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)3);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)5);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(2);
     //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     //glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)sizeof(vertices));
@@ -134,15 +143,39 @@ int main()
         processInput(window);
 
         //渲染指令glUseProgram(shaderProgram);
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.1f, 0.5f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+
+        glm::mat4 model;
         normal_shader.use();
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        normal_shader.setMat4("model", model);
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
 
+        //single color
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+        single_color_shader.use();
+
+        glBindVertexArray(VAO);
+        float scale = 1.1f;
+        model = glm::mat4();
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(scale, scale, scale));
+        single_color_shader.setMat4("model", model);
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+
+        glStencilMask(0xFF);
+        glEnable(GL_DEPTH_TEST);
         //检查并调用事件，交换缓冲
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -161,3 +194,4 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
+*/
