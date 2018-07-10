@@ -130,23 +130,23 @@ int main()
     };
     float planeVertices[] = {
         // positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
-        5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
-        -5.0f, -0.5f, 5.0f, 0.0f, 0.0f,
-        -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
+        5.0f, -0.5f, 5.0f, 2.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -5.0f, -0.5f, 5.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f, 0.0f, 2.0f, 0.0f, 1.0f, 0.0f,
 
-        5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
-        -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
-        5.0f, -0.5f, -5.0f, 2.0f, 2.0f
+        5.0f, -0.5f, 5.0f, 2.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f, 0.0f, 2.0f, 0.0f, 1.0f, 0.0f,
+        5.0f, -0.5f, -5.0f, 2.0f, 2.0f, 0.0f, 1.0f, 0.0f,
     };
     float transparentVertices[] = {
         // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
-        0.0f, 0.5f, 0.0f, 0.0f, 0.0f,
-        0.0f, -0.5f, 0.0f, 0.0f, 1.0f,
-        1.0f, -0.5f, 0.0f, 1.0f, 1.0f,
+        0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.0f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        1.0f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
 
-        0.0f, 0.5f, 0.0f, 0.0f, 0.0f,
-        1.0f, -0.5f, 0.0f, 1.0f, 1.0f,
-        1.0f, 0.5f, 0.0f, 1.0f, 0.0f
+        0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        1.0f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        1.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
     };
     std::vector<glm::vec3> vegetation;
     vegetation.push_back(glm::vec3(-1.5f, 0.0f, -0.48f));
@@ -175,10 +175,12 @@ int main()
     glBindVertexArray(planeVAO);
     glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
     glBindVertexArray(0);
     //grass VAO
     unsigned int grassVAO, grassVBO;
@@ -187,10 +189,12 @@ int main()
     glBindVertexArray(grassVAO);
     glBindBuffer(GL_ARRAY_BUFFER, grassVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), &transparentVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
     glBindVertexArray(0);
 
     // load textures
@@ -225,7 +229,6 @@ int main()
 
         // set uniforms
         glm::mat4 model = glm::mat4();
-        model[3][3] = 1.0f;
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
@@ -244,13 +247,13 @@ int main()
         light_shader.setVec3("light.diffuse", diffuseColor);
         light_shader.setVec3("light.specular", lightColor);
         
-        glm::vec3 lightPos(1.2f, 3.0f, 2.0f);
-        light_shader.setFloat("material.shininess", 16.0f);
+        glm::vec3 lightPos(1.0f, 3.0f, 2.0f);
+        light_shader.setFloat("material.shininess", 32.0f);
         light_shader.setVec3("light.position", lightPos);
         light_shader.setVec3("viewPos", camera.Position);
 
         light_shader.setVec3("material.ambient", 1.0f, 1.0f, 1.0f);
-        light_shader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+        light_shader.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
         light_shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
         // floor
         glBindVertexArray(planeVAO);
